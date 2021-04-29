@@ -17,14 +17,14 @@
           {% for task in tasks %}
             <tr class="tasks-table-row">
             {% if task.task_completed %}
-                <td><a href="{{url_for('toggle_task', task_id=task.id)}}"> ☑ </a></td>
+                <td><a href="{{url_for('toggle_task', task_id=task.id)}}"><img src="../static/img/checkbox_checked.svg"></a></td>
                 <td class="table-crossed-text">{{task.task_name}}</td>
-                <td><a class="red-color" href="{{url_for('delete_task', task_id=task.id)}}"> ⮿ </a></td>
+                <td><a class="red-color" href="{{url_for('delete_task', task_id=task.id)}}"><img src="../static/img/delete.svg"></a></td>
             {% else %}
-                <td><a href="{{url_for('toggle_task', task_id=task.id)}}"> ☐ </a></td>
+                <td><a href="{{url_for('toggle_task', task_id=task.id)}}"><img src="../static/img/checkbox_clear.svg"></a></td>
                 <td class="table-text">{{task.task_name}}</td>
 <!--                <td><a class="red-color" href="{{url_for('delete_task', task_id=task.id)}}"> ⮿ </a></td>-->
-                <td><a href="{{url_for('delete_task', task_id=task.id)}}"><img class="delete-image" src="../static/img/delete.svg"></a></td>
+                <td><a href="{{url_for('delete_task', task_id=task.id)}}"><img src="../static/img/delete.svg"></a></td>
             {% endif %}
             </tr>
           {% endfor %}
