@@ -2,9 +2,9 @@
 
 This is a web application for managing your ToDo lists. Anyone can register with just username and password to create and maintain multiple to do lists. This app can be accessed from any browser on a desktop or mobile device. 
 
-![Freelancer-Friendly Melbourne Cafes project screenshot_1](https://github.com/zvikasan/melbourne-cafes/blob/master/screenshot_1.jpg?raw=true)
+![Freelancer-Friendly Melbourne Cafes project screenshot_1](https://github.com/zvikasan/ToDoLists-Website-Python-Flask/blob/master/screenshot_1.jpg?raw=true)
 
-![Freelancer-Friendly Melbourne Cafes project screenshot_1](https://github.com/zvikasan/melbourne-cafes/blob/master/screenshot_2.jpg?raw=true)
+![Freelancer-Friendly Melbourne Cafes project screenshot_1](https://github.com/zvikasan/ToDoLists-Website-Python-Flask/blob/master/screenshot_2.jpg?raw=true)
 
 
 Live working version of this project can be seen **[here](https://soletrader-todo-lists.herokuapp.com/)**
