@@ -153,3 +153,7 @@ taskList.db
 
 #secret keys
 details.py
+
+#other
+Pipfile
+Pipfile.lock
