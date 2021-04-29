@@ -7,7 +7,7 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, cur
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
 
-import details
+# import details
 from forms import *
 
 app = Flask(__name__)
