@@ -1,0 +1,26 @@
+{% import "bootstrap/wtf.html" as wtf %}
+{% include "header.html" %}
+{% block content %}
+
+<div class="main-title text-center">
+    <div class="container">
+  <h1 >Your Simple ToDo list</h1>
+  <h2 >Add new Task List</h2>
+  <hr>
+    </div>
+</div>
+    {% if current_user.is_authenticated: %}
+      <div class="container">
+
+        {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary", "btn_cancel": "secondary"}) }}
+
+    {% else: %}
+        <p class="description-text">Please login to access your Task Lists, or register to create a new one.</p>
+    {% endif %}
+
+</div>
+
+
+
+{% include "footer.html" %}
+{% endblock %}

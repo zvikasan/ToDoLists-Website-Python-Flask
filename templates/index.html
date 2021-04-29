@@ -1,0 +1,41 @@
+{% include "header.html" %}
+{% block content %}
+
+<div class="main-title text-center">
+    <div class="container">
+  <h1 >Your Simple ToDo list</h1>
+  <h2 >Access it anywhere from any device at any time</h2>
+        {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+  <hr>
+    {% if current_user.is_authenticated: %}
+        <h2>My Task Lists</h2>
+        <table class="tasklists-table">
+        {% for taskList in task_lists %}
+            <tr>
+                <td class="wide-cell"><button type="button" class="btn btn-primary btn-taskList" onclick="window.location='{{url_for('add_task', task_list_id=taskList.id, task_list_name=taskList.list_name)}}'">{{taskList.list_name}}</button></td>
+                <td><a class="red-color" style="font-size: 2vw" href="{{url_for('delete_task_list', task_list_id=taskList.id)}}"> ⮿ </a></td>
+            </tr>
+        {% endfor %}
+        </table>
+        <button type="button" class="btn btn-primary btn-add-taskList" onclick="location.href = '/add-task-list'">Add Task List</button><br>
+        <a class="red-color" style="float: right; font-size: clamp(10px, 2vw, 15px)" href="{{url_for('delete_user_prelim')}}">Delete User</a>
+    {% else: %}
+        <p class="description-text">Please <a href="{{url_for('login')}}">login</a> to access your Task Lists, or <a href="{{url_for('register')}}">register</a> to create a new one.</p>
+    {% endif %}
+
+</div>
+    </div>
+
+
+
+{% include "footer.html" %}
+{% endblock %}

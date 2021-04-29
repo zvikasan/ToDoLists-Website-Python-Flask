@@ -1,0 +1,34 @@
+{% include "header.html" %}
+{% block content %}
+
+<div class="main-title text-center">
+    <div class="container">
+  <h1 >Your Simple ToDo list</h1>
+  <h2 >Access it anywhere from any device at any time</h2>
+        {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+  <hr>
+    {% if current_user.is_authenticated: %}
+        <h2 class="red color">Deleting All Your Data!</h2>
+        <button type="button" class="btn btn-primary btn-add-taskList red-background" onclick="window.location='{{url_for('delete_user', user_id=current_user.id)}}'">Yes, Delete</button><br>
+        <button type="button" class="btn btn-primary btn-add-taskList" onclick="window.location='{{url_for('home')}}'">No, Go Back</button><br>
+
+    {% else: %}
+        <p class="description-text">Please <a href="{{url_for('login')}}">login</a> to delete your data.</p>
+    {% endif %}
+
+</div>
+    </div>
+
+
+
+{% include "footer.html" %}
+{% endblock %}

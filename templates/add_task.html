@@ -1,0 +1,49 @@
+{% import "bootstrap/wtf.html" as wtf %}
+{% include "header.html" %}
+{% block content %}
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='css/styles.css')}}">
+<div class="main-title text-center">
+    <div class="container">
+  <h1 >Your Simple ToDo list</h1>
+  <h2 >{{ task_list_name }}</h2>
+
+  </div>
+</div>
+    {% if current_user.is_authenticated: %}
+    <div class="container">
+<hr>
+        <table class="my-table">
+          {% for task in tasks %}
+            <tr class="tasks-table-row">
+            {% if task.task_completed %}
+                <td><a href="{{url_for('toggle_task', task_id=task.id)}}"> ☑ </a></td>
+                <td class="table-crossed-text">{{task.task_name}}</td>
+                <td><a class="red-color" href="{{url_for('delete_task', task_id=task.id)}}"> ⮿ </a></td>
+            {% else %}
+                <td><a href="{{url_for('toggle_task', task_id=task.id)}}"> ☐ </a></td>
+                <td class="table-text">{{task.task_name}}</td>
+                <td><a class="red-color" href="{{url_for('delete_task', task_id=task.id)}}"> ⮿ </a></td>
+            {% endif %}
+            </tr>
+          {% endfor %}
+        </table>
+    </div>
+      <div class="container add-task-list">
+          <hr>
+    <div class="row new-task">
+        {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary", "btn_cancel": "secondary"}) }}
+      </div>
+    </div>
+
+    {% else: %}
+        <p class="description-text">Please login to access your Task Lists, or register to create a new one.</p>
+    {% endif %}
+
+
+
+
+
+
+{% include "footer.html" %}
+{% endblock %}

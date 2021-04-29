@@ -1,0 +1,29 @@
+{% include "header.html" %}
+{% block content %}
+
+<div class="main-title text-center">
+    <div class="container">
+  <h1 >Your Simple ToDo list</h1>
+  <h2 >Access it anywhere from any device at any time</h2>
+        {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+    <hr>
+    <p class="description-text red-color">OOPS! Looks like we don't have what you're looking for...</p>
+    <hr>
+    <button type="button" class="btn btn-primary btn-taskList" onclick="window.location='{{url_for('home')}}'">Go Back</button>
+
+</div>
+    </div>
+
+
+
+{% include "footer.html" %}
+{% endblock %}

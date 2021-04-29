@@ -1,0 +1,3 @@
+{{task_form.taskName.data = task.task_name}}
+        {{task_form.task_checkbox.data = task.task_completed}}
+        {{wtf.quick_form(task_form, novalidate=true)}}

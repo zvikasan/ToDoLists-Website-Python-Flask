@@ -1,0 +1,40 @@
+{% extends 'bootstrap/base.html' %}
+{% block styles %}
+{{super()}}
+<link rel="stylesheet"
+      href="{{url_for('.static', filename='css/styles.css')}}">
+ <link rel="shortcut icon" href="static/img/favicon.ico" />
+{% endblock %}
+
+
+{% block title %}soleTrader Simple ToDo List{% endblock %}
+{% block content %}
+
+<!--<div class="back-to-soletrader">-->
+<!--    <p class="back-link"><a href="https://soletraderapp.com"><img class="top-image" src="../static/img/soleTraderAppLogo.svg">   Back to soleTrader app</a>-->
+<!--    {% if current_user.is_authenticated: %}-->
+<!--        <button type="button" class="btn btn-primary btn-logout" onclick="location.href = '/logout';">Logout</button>-->
+<!--         <span style="text-align:center">Hi {{current_user.user_name}}! </span></p>-->
+<!--    {% else: %}-->
+<!--        <button type="button" class="btn btn-primary btn-logout" onclick="location.href = '/login';">Login</button>-->
+<!--    {% endif %}-->
+<!--</div>-->
+
+<table class="header-table">
+    <tr>
+        <td> <p class="back-link"><a href="https://soletraderapp.com"><img class="top-image" src="../static/img/soleTraderAppLogo.svg">   Back to soleTrader app</a></p></td>
+        {% if current_user.is_authenticated: %}
+        <td><button type="button" class="btn btn-primary btn-logout" onclick="location.href = '/logout';">Logout</button></td>
+        {% else: %}
+        <td><button type="button" class="btn btn-primary btn-logout" onclick="location.href = '/login';">Login</button></td>
+        {% endif %}
+    </tr>
+    <tr>
+        {% if current_user.is_authenticated: %}
+        <td colspan="2" style="text-align:center; font-size: clamp(10px,3.5vw,25px); font-weight:bold; color: #233245">Hi {{current_user.user_name}}!</td>
+        {% endif %}
+    </tr>
+
+</table>
+
+{% endblock %}
