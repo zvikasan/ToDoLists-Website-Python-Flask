@@ -22,7 +22,8 @@
         {% for taskList in task_lists %}
             <tr>
                 <td class="wide-cell"><button type="button" class="btn btn-primary btn-taskList" onclick="window.location='{{url_for('add_task', task_list_id=taskList.id, task_list_name=taskList.list_name)}}'">{{taskList.list_name}}</button></td>
-                <td><a class="red-color" style="font-size: 2vw" href="{{url_for('delete_task_list', task_list_id=taskList.id)}}"> ⮿ </a></td>
+<!--                <td><a class="red-color" style="font-size: 2vw" href="{{url_for('delete_task_list', task_list_id=taskList.id)}}"> ⮿ </a></td>-->
+                <td><a href="{{url_for('delete_task_list', task_list_id=taskList.id)}}"><img class="delete-image" src="../static/img/delete.svg"></a></td>
             </tr>
         {% endfor %}
         </table>

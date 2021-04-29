@@ -23,7 +23,8 @@
             {% else %}
                 <td><a href="{{url_for('toggle_task', task_id=task.id)}}"> ☐ </a></td>
                 <td class="table-text">{{task.task_name}}</td>
-                <td><a class="red-color" href="{{url_for('delete_task', task_id=task.id)}}"> ⮿ </a></td>
+<!--                <td><a class="red-color" href="{{url_for('delete_task', task_id=task.id)}}"> ⮿ </a></td>-->
+                <td><a href="{{url_for('delete_task', task_id=task.id)}}"><img class="delete-image" src="../static/img/delete.svg"></a></td>
             {% endif %}
             </tr>
           {% endfor %}
