@@ -3,7 +3,7 @@
 
 <div class="main-title text-center">
     <div class="container">
-  <h1 >Your Simple ToDo list</h1>
+  <h1 >Your Simple ToDo lists</h1>
   <h2 >Access it anywhere from any device at any time</h2>
         {% with messages = get_flashed_messages() %}
   {% if messages %}
@@ -17,7 +17,7 @@
 
   <hr>
     {% if current_user.is_authenticated: %}
-        <h2>My Task Lists</h2>
+        <h2>My Lists</h2>
         <table class="tasklists-table">
         {% for taskList in task_lists %}
             <tr>
