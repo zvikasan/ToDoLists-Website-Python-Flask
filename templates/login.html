@@ -10,7 +10,7 @@
 
 </div>
     </div>
-
+<div class="container flashes">
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     <ul class=flashes>
@@ -20,10 +20,11 @@
     </ul>
   {% endif %}
 {% endwith %}
-
+</div>
 <div class="container">
     <div class="row">
-        {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary", "register": "primary", "btn_cancel":"secondary"} ) }}
+        {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary", "register": "primary", "btn_cancel":"secondary", "forgot_password":"forgot"})}}
+<!--        <span id="forgotPasswordLink"><a href="{{url_for('forgot_password')}}">forgot password</a></span>-->
       </div>
     </div>
   </div>

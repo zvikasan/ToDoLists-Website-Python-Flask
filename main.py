@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
@@ -7,13 +8,25 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, cur
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
 
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadTimeSignature
+
+
 # import details
 from forms import *
 
 app = Flask(__name__)
 # app.config['SECRET_KEY'] = details.secret_key
 app.config['SECRET_KEY'] = os.environ.get("TASKS_WEBSITE_KEY")
+app.config.from_pyfile('email_config.cfg')
+app.config['MAIL_PASSWORD'] = os.environ.get("TASKS_WEBSITE_MAIL_PASSWORD")
+app.config['MAIL_USERNAME'] = os.environ.get("TASKS_WEBSITE_MAIL_USERNAME")
+mail = Mail(app)
 Bootstrap(app)
+
+
+# The variable below is needed for generating password reset tokens
+s = URLSafeTimedSerializer(os.environ.get("TASKS_WEBSITE_KEY"))
 
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taskList.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("TASKS_WEBSITE_DATABASE_URL", 'sqlite:///taskList.db')
@@ -94,9 +107,9 @@ def add_task_list():
 @login_required
 def add_task(task_list_id):
     tasks = Task.query.filter_by(taskList_id=task_list_id)
-    task_list = TaskList.query.filter_by(id=task_list_id)
+    task_list = TaskList.query.filter_by(id=task_list_id).first()
     try:
-        if task_list[0].user_id != current_user.id:
+        if task_list.user_id != current_user.id:
             return redirect(url_for('home'))
     except IndexError:
         return redirect(url_for('home'))
@@ -113,19 +126,18 @@ def add_task(task_list_id):
         db.session.commit()
         # return redirect(url_for('home'))
         return redirect(url_for("add_task", form=form, task_form=task_form, task_list_id=task_list_id,
-                                task_list_name=task_list[0].list_name, tasks=tasks))
+                                task_list_name=task_list.list_name, tasks=tasks))
     return render_template("add_task.html", form=form, task_form=task_form, task_list_id=task_list_id,
-                           task_list_name=task_list[0].list_name, tasks=tasks)
+                           task_list_name=task_list.list_name, tasks=tasks)
 
 
 @app.route("/toggle-task/<int:task_id>", methods=["GET", "POST"])
 @login_required
 def toggle_task(task_id):
-    task = Task.query.filter_by(id=task_id)
-    task = task[0]
-    task_list = TaskList.query.filter_by(id=task.taskList_id)
+    task = Task.query.filter_by(id=task_id).first()
+    task_list = TaskList.query.filter_by(id=task.taskList_id).first()
     try:
-        if task_list[0].user_id != current_user.id:
+        if task_list.user_id != current_user.id:
             return redirect(url_for('home'))
     except IndexError:
         return redirect(url_for('home'))
@@ -137,19 +149,18 @@ def toggle_task(task_id):
     form = AddTaskForm()
     task_form = TaskForm()
     tasks = Task.query.filter_by(taskList_id=task.taskList_id)
-    task_list = TaskList.query.filter_by(id=task.taskList_id)
+    task_list = TaskList.query.filter_by(id=task.taskList_id).first()
     return redirect(url_for('add_task', form=form, task_form=task_form, task_list_id=task.taskList_id,
-                            task_list_name=task_list[0].list_name, tasks=tasks))
+                            task_list_name=task_list.list_name, tasks=tasks))
 
 
 @app.route("/delete-task/<int:task_id>", methods=["GET", "POST"])
 @login_required
 def delete_task(task_id):
-    task = Task.query.filter_by(id=task_id)
+    task = Task.query.filter_by(id=task_id).first()
     try:
-        task = task[0]
-        task_list = TaskList.query.filter_by(id=task.taskList_id)
-        if task_list[0].user_id != current_user.id:
+        task_list = TaskList.query.filter_by(id=task.taskList_id).first()
+        if task_list.user_id != current_user.id:
             return redirect(url_for('home'))
     except IndexError:
         return redirect(url_for('home'))
@@ -158,17 +169,16 @@ def delete_task(task_id):
     form = AddTaskForm()
     task_form = TaskForm()
     tasks = Task.query.filter_by(taskList_id=task.taskList_id)
-    task_list = TaskList.query.filter_by(id=task.taskList_id)
+    task_list = TaskList.query.filter_by(id=task.taskList_id).first()
     return redirect(url_for('add_task', form=form, task_form=task_form, task_list_id=task.taskList_id,
-                            task_list_name=task_list[0].list_name, tasks=tasks))
+                            task_list_name=task_list.list_name, tasks=tasks))
 
 
 @app.route("/delete-task-list/<int:task_list_id>", methods=["GET", "POST"])
 @login_required
 def delete_task_list(task_list_id):
-    task_list = TaskList.query.filter_by(id=task_list_id)
+    task_list = TaskList.query.filter_by(id=task_list_id).first()
     try:
-        task_list = task_list[0]
         if task_list.user_id != current_user.id:
             return redirect(url_for('home'))
     except IndexError:
@@ -220,6 +230,8 @@ def login():
         return redirect(url_for('home'))
     if form.register.data:
         return redirect(url_for('register'))
+    if form.forgot_password.data:
+        return redirect(url_for('forgot_password'))
     if form.validate_on_submit():
         user_email = form.email.data
         user = User.query.filter_by(email=user_email).first()
@@ -243,6 +255,63 @@ def logout():
     return redirect(url_for('home'))
 
 
+@app.route('/forgot-password', methods=["GET", "POST"])
+def forgot_password():
+    form = ForgotPasswordForm()
+    if form.btn_cancel.data:
+        return redirect(url_for('login'))
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data.lower()).first()
+        if user:
+            email = form.email.data.lower()
+            token = s.dumps(email, salt='password-reset')
+            msg = Message('Reset Password for Your Simple ToDo Lists account',
+                          sender='contact@soletraderapp.com',
+                          recipients=[email])
+            link = url_for('reset_password', token=token, _external=True)
+            msg.body = 'We received a request for a password reset on Your Simple ToDo Lists website. \n ' \
+                       'if it wasn\'t you please disregard this email. \n' \
+                       'To reset your password please click on the link below. \n' \
+                       '{}'.format(link)
+            try:
+                mail.send(msg)
+            except Exception as e:
+                print(e)
+                flash('Error sending email')
+                return redirect(url_for('login'))
+            flash('Password reset link was sent. Please check your email. \n '
+                  'If you don\'t see the email, check your spam folder')
+            return redirect(url_for('login'))
+        else:
+            flash('Password reset link was sent. Please check your email. '
+                  'If you don\'nt see the email, check your spam folder')
+            return redirect(url_for('login'))
+    return render_template("forgot_password.html", form=form)
+
+
+@app.route('/reset-password/<token>', methods=["GET", "POST"])
+def reset_password(token):
+    form = PasswordResetForm()
+    if form.btn_cancel.data:
+        return redirect(url_for('login'))
+    try:
+        email = s.loads(token, salt='password-reset', max_age=86400)
+    except (SignatureExpired, BadTimeSignature):
+        flash('Your password reset link is expired')
+        return redirect(url_for('login'))
+    user = User.query.filter_by(email=email).first()
+    if user:
+        if form.validate_on_submit():
+            hashed_password = generate_password_hash(form.new_password.data,
+                                                     method='pbkdf2:sha256',
+                                                     salt_length=8)
+            user.password = hashed_password
+            db.session.commit()
+            flash('Password was changed successfully')
+            return redirect(url_for('login'))
+    return render_template("reset_password.html", form=form)
+
+
 @app.route("/delete-user-prelim", methods=["GET", "POST"])
 @login_required
 def delete_user_prelim():
@@ -252,9 +321,8 @@ def delete_user_prelim():
 @app.route("/delete-user/<int:user_id>", methods=["GET", "POST"])
 @login_required
 def delete_user(user_id):
-    user_to_delete = User.query.filter_by(id=user_id)
+    user_to_delete = User.query.filter_by(id=user_id).first()
     try:
-        user_to_delete = user_to_delete[0]
         if user_to_delete.id != current_user.id:
             return redirect(url_for('home'))
     except IndexError:
