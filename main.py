@@ -80,7 +80,7 @@ def page_not_found(e):
 @app.route("/")
 def home():
     if current_user.is_authenticated:
-        task_lists = TaskList.query.filter_by(user_id=current_user.id)
+        task_lists = TaskList.query.filter_by(user_id=current_user.id).order_by(TaskList.id)
     else:
         task_lists = None
     return render_template("index.html", task_lists=task_lists)
