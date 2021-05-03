@@ -46,6 +46,7 @@ class User(UserMixin, db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
+    temp_email = db.Column(db.String(100),unique=True)
     password = db.Column(db.String(100))
     user_name = db.Column(db.String(100))
     taskLists = relationship("TaskList", back_populates="user")
@@ -70,6 +71,7 @@ class Task(db.Model):
 
 
 db.create_all()
+# result = db.engine.execute("ALTER TABLE users ADD COLUMN temp_email VARCHAR(100)")
 
 
 @app.errorhandler(404)
@@ -199,7 +201,7 @@ def register():
     if form.btn_cancel.data:
         return redirect(url_for('home'))
     if form.validate_on_submit():
-        user_email = form.email.data
+        user_email = form.email.data.lower()
         email_exists = User.query.filter_by(email=user_email).first()
         if email_exists:
             flash("You've already signed up with this email, log in instead!")
@@ -209,16 +211,52 @@ def register():
                                                      method='pbkdf2:sha256',
                                                      salt_length=8)
             new_user = User(
-                email=form.email.data,
+                temp_email=form.email.data.lower(),
                 password=hashed_password,
                 user_name=form.user_name.data,
             )
             db.session.add(new_user)
             db.session.commit()
-            login_user(new_user)
-            flash('Thank you for registering!')
-            return redirect(url_for('home'))
+            token = s.dumps(user_email, salt='user-registration')
+            msg = Message('Please confirm your registration for Your Simple ToDo Lists account',
+                          sender='contact@soletraderapp.com',
+                          recipients=[user_email])
+            link = url_for('new_user_confirmation', token=token, _external=True)
+            msg.body = "Hi {}, \n" \
+                       "Please confirm your registration for Your Simple ToDo Lists account by " \
+                       "clicking on the link below. \n" \
+                       "{}".format(form.user_name.data, link)
+            try:
+                mail.send(msg)
+            except Exception as e:
+                print(e)
+                flash('Error sending confirmation email')
+                return redirect(url_for('register'))
+            flash('We emailed you a confirmation link. \n '
+                  'Please click on it to verify your new account.'
+                  'If you don\'t see the email, check your spam folder')
+            # login_user(new_user)
+            # flash('Thank you for registering!')
+            return redirect(url_for('login'))
     return render_template("register.html", form=form)
+
+
+@app.route('/new-user-confirmation/<token>, methods=["GET", "POST"]')
+def new_user_confirmation(token):
+    try:
+        email = s.loads(token, salt='user-registration', max_age=7200)
+    except (SignatureExpired, BadTimeSignature):
+        flash('Your confirmation link is expired, please register again.')
+        return redirect(url_for('register'))
+    user = User.query.filter_by(temp_email=email).first()
+    if user:
+        user.email = user.temp_email
+        db.session.commit()
+        login_user(user)
+        flash('Thank you for registering! \n'
+              'Click on "Add Task List" to create y our first list and start adding tasks.')
+        return redirect(url_for('home'))
+    return redirect(url_for('home'))
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -233,7 +271,7 @@ def login():
     if form.forgot_password.data:
         return redirect(url_for('forgot_password'))
     if form.validate_on_submit():
-        user_email = form.email.data
+        user_email = form.email.data.lower()
         user = User.query.filter_by(email=user_email).first()
         if user:
             if check_password_hash(user.password, form.password.data):
@@ -284,7 +322,7 @@ def forgot_password():
             return redirect(url_for('login'))
         else:
             flash('Password reset link was sent. Please check your email. '
-                  'If you don\'nt see the email, check your spam folder')
+                  'If you don\'t see the email, check your spam folder')
             return redirect(url_for('login'))
     return render_template("forgot_password.html", form=form)
 
