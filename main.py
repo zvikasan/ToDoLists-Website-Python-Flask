@@ -106,7 +106,7 @@ def add_task_list():
 @app.route("/add-task/<int:task_list_id>", methods=["GET", "POST"])
 @login_required
 def add_task(task_list_id):
-    tasks = Task.query.filter_by(taskList_id=task_list_id)
+    tasks = Task.query.filter_by(taskList_id=task_list_id).order_by(Task.id)
     task_list = TaskList.query.filter_by(id=task_list_id).first()
     try:
         if task_list.user_id != current_user.id:
@@ -148,7 +148,7 @@ def toggle_task(task_id):
     db.session.commit()
     form = AddTaskForm()
     task_form = TaskForm()
-    tasks = Task.query.filter_by(taskList_id=task.taskList_id)
+    tasks = Task.query.filter_by(taskList_id=task.taskList_id).order_by(Task.id)
     task_list = TaskList.query.filter_by(id=task.taskList_id).first()
     return redirect(url_for('add_task', form=form, task_form=task_form, task_list_id=task.taskList_id,
                             task_list_name=task_list.list_name, tasks=tasks))
@@ -168,7 +168,7 @@ def delete_task(task_id):
     db.session.commit()
     form = AddTaskForm()
     task_form = TaskForm()
-    tasks = Task.query.filter_by(taskList_id=task.taskList_id)
+    tasks = Task.query.filter_by(taskList_id=task.taskList_id).order_by(Task.id)
     task_list = TaskList.query.filter_by(id=task.taskList_id).first()
     return redirect(url_for('add_task', form=form, task_form=task_form, task_list_id=task.taskList_id,
                             task_list_name=task_list.list_name, tasks=tasks))
