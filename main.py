@@ -1,5 +1,5 @@
 import os
-import uuid
+# import uuid
 
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
@@ -61,6 +61,15 @@ class TaskList(db.Model):
     tasks_list = relationship("Task", back_populates="list_of_tasks")
 
 
+class SharedLists(db.Model):  # this table is to store emails of users with whom a task list was shared
+    __tablename__ = "sharedLists"
+    id = db.Column(db.Integer, primary_key=True)
+    taskList_id = db.Column(db.Integer, db.ForeignKey("taskLists.id"))
+    list_name = db.Column(db.String(250))
+    temp_email = db.Column(db.String(100))
+    email = db.Column(db.String(100))
+
+
 class Task(db.Model):
     __tablename__ = "tasks"
     id = db.Column(db.Integer, primary_key=True)
@@ -83,9 +92,11 @@ def page_not_found(e):
 def home():
     if current_user.is_authenticated:
         task_lists = TaskList.query.filter_by(user_id=current_user.id).order_by(TaskList.id)
+        shared_lists = SharedLists.query.filter_by(email=current_user.email)
     else:
         task_lists = None
-    return render_template("index.html", task_lists=task_lists)
+        shared_lists = None
+    return render_template("index.html", task_lists=task_lists, shared_lists=shared_lists)
 
 
 @app.route("/add-task-list", methods=["GET", "POST"])
@@ -112,6 +123,10 @@ def add_task(task_list_id):
     task_list = TaskList.query.filter_by(id=task_list_id).first()
     try:
         if task_list.user_id != current_user.id:
+            shared_lists = SharedLists.query.filter_by(email=current_user.email)
+            for shared_list in shared_lists:
+                if shared_list.taskList_id == task_list.id:
+                    pass
             return redirect(url_for('home'))
     except IndexError:
         return redirect(url_for('home'))
@@ -193,6 +208,81 @@ def delete_task_list(task_list_id):
     return redirect(url_for('home'))
 
 
+@app.route("/share-task-list/<int:task_list_id>", methods=["GET", "POST"])
+@login_required
+def share_task_list(task_list_id):
+    form = ShareTaskListForm()
+    task_list = TaskList.query.filter_by(id=task_list_id).first()
+    try:  # making sure that current user has ownership of the task list that is being shared
+        if task_list.user_id != current_user.id:
+            return redirect(url_for('home'))
+    except IndexError:
+        return redirect(url_for('home'))
+    if form.btn_cancel.data:
+        return redirect(url_for('home'))
+    if form.validate_on_submit():
+        sending_email_errors = []  # list with email addresses to which sharing emails failed to send
+        list_of_emails = form.emails.data.lower().split(',')
+        for email in list_of_emails:
+            email = email.strip()
+            new_shared_task_list_entry = SharedLists(
+                taskList_id=task_list.id,
+                list_name=task_list.list_name,
+                temp_email=email
+            )
+            db.session.add(new_shared_task_list_entry)
+            coded_string = email+','+task_list.id  # this will let me later to find out which task list was shared
+            token = s.dumps(coded_string, salt='task-list-sharing')
+            msg = Message(f'{current_user.user_name} wants to share his Simple ToDo list with you',
+                          sender='contact@soletraderapp.com',
+                          recipients=[email])
+            link = url_for('shared_list_accepted', token=token, _external=True)
+            msg.body = "Hi there! \n" \
+                       "{} wants to share one of his Simple To Do lists with you \n" \
+                       "To accept the invitation and view the list please click on the link below. \n" \
+                       "{}".format(current_user.user_name, link)
+            try:
+                mail.send(msg)
+            except Exception as e:
+                print(e)
+                sending_email_errors.append(email)
+        db.session.commit()
+        if not sending_email_errors:
+            flash('Your recipients have been notified')
+        else:
+            flash("We couldn't send emails to {}".format(sending_email_errors))
+        return redirect(url_for('home'))
+    return render_template("share_task_list.html", form=form, taskList=task_list)
+
+
+@app.route('/shared-list-accepted/<token>', methods=["GET"])
+def shared_list_accepted(token):
+    try:
+        coded_string = s.loads(token, salt='task-list-sharing', max_age=86400)
+    except (SignatureExpired, BadTimeSignature):
+        flash('Your confirmation link is expired.')
+        return redirect(url_for('home'))
+    coded_string = coded_string.split(',')
+    email = coded_string[0]
+    shared_task_list_id = coded_string[1]
+    user = User.query.filter_by(email=email).first()
+    shared_list = SharedLists.query.filter_by(temp_email=email, taskList_id=shared_task_list_id).first()
+    if user:
+        shared_list.email = shared_list.temp_email
+        db.session.commit()
+        if current_user.is_authenticated and current_user.id == user.id:
+            return redirect(url_for('home'))
+        else:
+            logout_user()
+            login_user(user, remember=True)
+            return redirect(url_for('home'))
+    else:
+        shared_list.email = shared_list.temp_email
+        db.session.commit()
+        flash('Please register to view ToDo lists that are shared with you')
+        return redirect(url_for('register'))
+
+
 @app.route('/register', methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
@@ -241,7 +331,7 @@ def register():
     return render_template("register.html", form=form)
 
 
-@app.route('/new-user-confirmation/<token>, methods=["GET", "POST"]')
+@app.route('/new-user-confirmation/<token>', methods=["GET", "POST"])
 def new_user_confirmation(token):
     try:
         email = s.loads(token, salt='user-registration', max_age=7200)

@@ -1,8 +1,11 @@
+import re
+
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, BooleanField
+from wtforms import StringField, SubmitField, PasswordField, BooleanField, ValidationError
 # from wtforms.validators import DataRequired, EqualTo, Email
 from wtforms.fields.html5 import EmailField
 from wtforms import validators
+
 # import email_validator
 
 
@@ -57,4 +60,32 @@ class AddTaskForm(FlaskForm):
 class TaskForm(FlaskForm):
     taskName = StringField("Task")
     task_checkbox = BooleanField()
+
+
+def validate_multiple_emails(form, field):  # Custom validator to validate multiple emails separated by comma
+    def check_email(email_address):
+        regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
+        if re.search(regex, email_address):
+            return True
+        else:
+            return False
+    message = 'One or more of the emails you entered are invalid.'
+    entered_emails = field.data.lower()
+    entered_emails_list = entered_emails.split(',')
+    for email in entered_emails_list:
+        if not check_email(email.strip()):
+            raise ValidationError(message)
+
+
+class ShareTaskListForm(FlaskForm):
+    emails = StringField("Enter emails separated by comma", validators=[validators.DataRequired(),
+                                                                        validate_multiple_emails])
+    submit = SubmitField("Share Task List")
+    btn_cancel = SubmitField(label='Back To Lists', render_kw={'formnovalidate': True})
+
+
+
+
+
+
 

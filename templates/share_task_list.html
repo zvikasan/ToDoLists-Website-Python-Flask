@@ -1,0 +1,38 @@
+{% import "bootstrap/wtf.html" as wtf %}
+{% include "header.html" %}
+{% block content %}
+
+<div class="main-title text-center">
+    <div class="container">
+  <h1 >Your Simple ToDo lists</h1>
+  <h2 >Access your tasks anywhere from any device at any time</h2>
+        {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+  <hr>
+    {% if current_user.is_authenticated: %}
+    <div class="container">
+        <h2 class="red color">Share {{ taskList.list_name }} Task List</h2>
+        {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary", "btn_cancel": "secondary"}) }}
+
+    {% else: %}
+        <p class="description-text">Please <a href="{{url_for('login')}}">login</a> to share task lists.</p>
+    {% endif %}
+    </div>
+
+</div>
+    </div>
+
+
+
+{% include "footer.html" %}
+{% endblock %}
+
+

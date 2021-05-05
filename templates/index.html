@@ -1,6 +1,5 @@
 {% include "header.html" %}
 {% block content %}
-
 <div class="main-title text-center">
     <div class="container">
   <h1 >Your Simple ToDo lists</h1>
@@ -21,20 +20,41 @@
         <table class="tasklists-table">
         {% for taskList in task_lists %}
             <tr>
-                <td class="wide-cell"><button type="button" class="btn btn-primary btn-taskList" onclick="window.location='{{url_for('add_task', task_list_id=taskList.id, task_list_name=taskList.list_name)}}'">{{taskList.list_name}}</button></td>
-<!--                <td><a class="red-color" style="font-size: 2vw" href="{{url_for('delete_task_list', task_list_id=taskList.id)}}"> ⮿ </a></td>-->
-                <td><a href="{{url_for('delete_task_list', task_list_id=taskList.id)}}"><img class="delete-image" src="../static/img/delete.svg"></a></td>
+                <td class="wide-cell"><button type="button" class="btn btn-primary btn-taskList"
+                                              onclick="window.location='{{url_for('add_task', task_list_id=taskList.id,
+                                              task_list_name=taskList.list_name)}}'">{{taskList.list_name}}
+                </button></td>
+                <td><a data-tooltip="Share task list" class="tooltips" href="{{url_for('share_task_list', task_list_id=taskList.id)}}" >
+                    <img src="../static/img/share.svg"></a></td>
+                <td><a href="{{url_for('delete_task_list', task_list_id=taskList.id)}}">
+                    <img src="../static/img/delete.svg"></a></td>
+
             </tr>
         {% endfor %}
         </table>
-        <button type="button" class="btn btn-primary btn-add-taskList" onclick="location.href = '/add-task-list'">Add Task List</button><br>
-        <a class="red-color" style="float: right; font-size: clamp(10px, 2vw, 15px)" href="{{url_for('delete_user_prelim')}}">Delete User</a>
+        <button type="button" class="btn btn-primary btn-add-taskList"
+                onclick="location.href = '/add-task-list'">Add Task List</button><br>
+        <a class="red-color" style="float: right; font-size: clamp(10px, 2vw, 15px)"
+           href="{{url_for('delete_user_prelim')}}">Delete User</a>
+        <hr>
+        <h2>Shared With Me</h2>
+        <table class="tasklists-table">
+        {% for sharedList in shared_lists %}
+            <tr>
+                <td class="wide-cell"><button type="button" class="btn btn-primary btn-taskList"
+                                              onclick="window.location='{{url_for('add_task', task_list_id=sharedList.taskList_id,
+                                              task_list_name=sharedList.list_name)}}'">{{sharedList.list_name}}
+                </button></td>
+            </tr>
+        {% endfor %}
+        </table>
     {% else: %}
-        <p class="description-text">Please <a href="{{url_for('login')}}">login</a> to access your Task Lists, or <a href="{{url_for('register')}}">register</a> to create a new one.</p>
+        <p class="description-text">Please <a href="{{url_for('login')}}">login</a> to access your Task Lists, or
+            <a href="{{url_for('register')}}">register</a> to create a new one.</p>
     {% endif %}
 
-</div>
     </div>
+</div>
 
 
 
