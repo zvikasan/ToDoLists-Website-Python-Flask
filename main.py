@@ -181,10 +181,14 @@ def toggle_task(task_id):
 @login_required
 def delete_task(task_id):
     task = Task.query.filter_by(id=task_id).first()
+    task_list = TaskList.query.filter_by(id=task.taskList_id).first()
     try:
-        task_list = TaskList.query.filter_by(id=task.taskList_id).first()
         if task_list.user_id != current_user.id:
-            return redirect(url_for('home'))
+            shared_list = SharedLists.query.filter_by(email=current_user.email, taskList_id=task.taskList_id).first()
+            if not shared_list:
+                return redirect(url_for('home'))
+            else:
+                pass
     except IndexError:
         return redirect(url_for('home'))
     db.session.delete(task)
