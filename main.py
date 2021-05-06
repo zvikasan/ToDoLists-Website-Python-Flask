@@ -123,11 +123,12 @@ def add_task(task_list_id):
     task_list = TaskList.query.filter_by(id=task_list_id).first()
     try:
         if task_list.user_id != current_user.id:
-            shared_lists = SharedLists.query.filter_by(email=current_user.email)
-            for shared_list in shared_lists:
-                if shared_list.taskList_id == task_list.id:
-                    pass
-            return redirect(url_for('home'))
+            shared_list = SharedLists.query.filter_by(email=current_user.email, taskList_id=task_list_id).first()
+            if not shared_list:
+                return redirect(url_for('home'))
+            else:
+                pass
+
     except IndexError:
         return redirect(url_for('home'))
     form = AddTaskForm()
@@ -155,7 +156,12 @@ def toggle_task(task_id):
     task_list = TaskList.query.filter_by(id=task.taskList_id).first()
     try:
         if task_list.user_id != current_user.id:
-            return redirect(url_for('home'))
+            shared_list = SharedLists.query.filter_by(email=current_user.email, taskList_id=task.taskList_id).first()
+            if not shared_list:
+                return redirect(url_for('home'))
+            else:
+                pass
+            # return redirect(url_for('home'))
     except IndexError:
         return redirect(url_for('home'))
     if task.task_completed:
@@ -231,7 +237,7 @@ def share_task_list(task_list_id):
                 temp_email=email
             )
             db.session.add(new_shared_task_list_entry)
-            coded_string = email+','+task_list.id  # this will let me later to find out which task list was shared
+            coded_string = email+','+str(task_list.id) # this will let me later to find out which task list was shared
             token = s.dumps(coded_string, salt='task-list-sharing')
             msg = Message(f'{current_user.user_name} wants to share his Simple ToDo list with you',
                           sender='contact@soletraderapp.com',
@@ -264,12 +270,13 @@ def shared_list_accepted(token):
         return redirect(url_for('home'))
     coded_string = coded_string.split(',')
     email = coded_string[0]
-    shared_task_list_id = coded_string[1]
+    shared_task_list_id = int(coded_string[1])
     user = User.query.filter_by(email=email).first()
     shared_list = SharedLists.query.filter_by(temp_email=email, taskList_id=shared_task_list_id).first()
     if user:
         shared_list.email = shared_list.temp_email
         db.session.commit()
+        flash('Thanks for accepting the shared list')
         if current_user.is_authenticated and current_user.id == user.id:
             return redirect(url_for('home'))
         else:
@@ -279,6 +286,8 @@ def shared_list_accepted(token):
     else:
         shared_list.email = shared_list.temp_email
         db.session.commit()
+        if current_user.is_authenticated:
+            logout_user()
         flash('Please register to view ToDo lists that are shared with you')
         return redirect(url_for('register'))
 
@@ -324,7 +333,7 @@ def register():
                 return redirect(url_for('register'))
             flash('We emailed you a confirmation link. \n '
                   'Please click on it to verify your new account.'
-                  'If you don\'t see the email, check your spam folder')
+                  ' If you don\'t see the email, check your spam folder')
             # login_user(new_user)
             # flash('Thank you for registering!')
             return redirect(url_for('login'))
