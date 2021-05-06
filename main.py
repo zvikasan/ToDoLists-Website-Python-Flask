@@ -487,6 +487,7 @@ def delete_user(user_id):
         my_shared_lists = SharedLists.query.filter_by(taskList_id=task_list.id)
         for my_list in my_shared_lists:
             db.session.delete(my_list)
+            db.session.commit()
         tasks_to_delete += Task.query.filter_by(taskList_id=task_list.id)
     for task in tasks_to_delete:
         db.session.delete(task)
