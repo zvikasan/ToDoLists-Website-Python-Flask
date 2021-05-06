@@ -486,6 +486,9 @@ def delete_user(user_id):
         db.session.delete(task)
     for task_list in task_lists_to_delete:
         db.session.delete(task_list)
+    shared_lists_to_delete = SharedLists.query.filter_by(temp_email=user_to_delete.email)
+    for shared_list in shared_lists_to_delete:
+        db.session.delete(shared_list)
     db.session.delete(user_to_delete)
     db.session.commit()
     flash(f'{user_to_delete.user_name} user and all data were successfully deleted')
