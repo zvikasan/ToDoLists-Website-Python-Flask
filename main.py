@@ -356,6 +356,16 @@ def new_user_confirmation(token):
         user.email = user.temp_email
         db.session.commit()
         login_user(user)
+        # ----------- Sending notification email to the admin --------
+        msg = Message('Simple ToDo - New User Registration',
+                      sender='contact@soletraderapp.com',
+                      recipients=['contact@soletraderapp.com'])
+        msg.body = 'New user registered and confirmed {}'.format(user.email)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            print(e)
+        # -------------------------------------------------------------
         flash('Thank you for registering! \n'
               'Click on "Add Task List" to create y our first list and start adding tasks.')
         return redirect(url_for('home'))
