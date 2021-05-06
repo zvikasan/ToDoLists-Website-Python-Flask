@@ -15,7 +15,8 @@ Live working version of this project can be seen **[here](https://soletrader-tod
 :heavy_check_mark: The Database can be either **PostgreSQL** or **SQLite** <br>
 :heavy_check_mark: Incorporates **Bootstrap** <br>
 :heavy_check_mark: Makes use of **WTForms**<br>
-:heavy_check_mark: When user registers, sends email confirmation link<br>
+:heavy_check_mark: When user registers, app emails a confirmation link<br>
+:heavy_check_mark: Users can **share** their ToDo lists with other users of the website<br>
 :heavy_check_mark: Has option to **Reset password** when forgotten<br>
 :heavy_check_mark: Uses custom google fonts<br>
 
