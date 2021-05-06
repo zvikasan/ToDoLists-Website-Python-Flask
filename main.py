@@ -210,9 +210,12 @@ def delete_task_list(task_list_id):
             return redirect(url_for('home'))
     except IndexError:
         return redirect(url_for('home'))
+    shared = SharedLists.query.filter_by(taskList_id=task_list.id)
     tasks_to_delete = Task.query.filter_by(taskList_id=task_list_id)
     for task in tasks_to_delete:
         db.session.delete(task)
+    for shared_list in shared:
+        db.session.delete(shared_list)
     db.session.delete(task_list)
     db.session.commit()
     return redirect(url_for('home'))
@@ -487,11 +490,9 @@ def delete_user(user_id):
         my_shared_lists = SharedLists.query.filter_by(taskList_id=task_list.id)
         for my_list in my_shared_lists:
             db.session.delete(my_list)
-            db.session.commit()
         tasks_to_delete += Task.query.filter_by(taskList_id=task_list.id)
     for task in tasks_to_delete:
         db.session.delete(task)
-
     for task_list in task_lists_to_delete:
         db.session.delete(task_list)
     db.session.delete(user_to_delete)
