@@ -478,17 +478,21 @@ def delete_user(user_id):
             return redirect(url_for('home'))
     except IndexError:
         return redirect(url_for('home'))
-    task_lists_to_delete = TaskList.query.filter_by(user_id=user_to_delete.id)
-    tasks_to_delete = []
-    for task_list in task_lists_to_delete:
-        tasks_to_delete += Task.query.filter_by(taskList_id=task_list.id)
-    for task in tasks_to_delete:
-        db.session.delete(task)
-    for task_list in task_lists_to_delete:
-        db.session.delete(task_list)
     shared_lists_to_delete = SharedLists.query.filter_by(temp_email=user_to_delete.email)
     for shared_list in shared_lists_to_delete:
         db.session.delete(shared_list)
+    task_lists_to_delete = TaskList.query.filter_by(user_id=user_to_delete.id)
+    tasks_to_delete = []
+    for task_list in task_lists_to_delete:
+        my_shared_lists = SharedLists.query.filter_by(taskList_id=task_list.id)
+        for my_list in my_shared_lists:
+            db.session.delete(my_list)
+        tasks_to_delete += Task.query.filter_by(taskList_id=task_list.id)
+    for task in tasks_to_delete:
+        db.session.delete(task)
+
+    for task_list in task_lists_to_delete:
+        db.session.delete(task_list)
     db.session.delete(user_to_delete)
     db.session.commit()
     flash(f'{user_to_delete.user_name} user and all data were successfully deleted')
